@@ -82,9 +82,9 @@ class Tree234<String, Integer> {
         int pos;
         while(true){
             pos = getDataPos(x,key);
-            if(x.data.get(pos).key.toString().compareTo(key.toString()) == 0)
+            if(x.data.get(pos).compareTo(key) == 0)
                 return x.data.get(pos);
-            else if(x.data.get(pos).key.toString().compareTo(key.toString()) < 0) {
+            else if(x.data.get(pos).compareTo(key)< 0) {
                 if(x.child.get(pos) == null)
                     return null;
                 x = x.child.get(pos);
@@ -101,7 +101,7 @@ class Tree234<String, Integer> {
         int pos;
         int dataSize = node.data.size();
         for(pos =0; pos < dataSize; pos++){
-            if(node.data.get(pos).key.toString().compareTo(key.toString()) > 0)
+            if(node.data.get(pos).compareTo(key) > 0)
                 return pos;
         }
         return pos;
@@ -146,5 +146,8 @@ class Element<K ,V> {
     public Element(K key, V value) {
         this.key = key;
         this.value = value;
+    }
+    int compareTo(K key){
+        return this.key.toString().compareTo(key.toString());
     }
 }
