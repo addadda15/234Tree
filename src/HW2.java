@@ -63,42 +63,61 @@ public class HW2 {
 }
 
 class Tree234<String, Integer> {
-    protected Node<String , Integer> root;
+    private Node<String , Integer> root;
+    private int nodeSize = 0;
 
     public void put(String key , Integer value) {
-        if(root == null) {
-            root = new Node<>(key,value,"left");
+        Node<String,Integer> x = root;
+        if(x == null) {
+            root = new Node<>(key,value);
             return;
         }
+
+
     }
     private  Element<String,Integer> treeSearch(String key){
         Node<String,Integer> x = root;
+        if(x == null)
+            return null;
+        int pos;
         while(true){
-            int cmp = key.toString().compareTo(x.data_l.key.toString());
-            if(cmp == 0)
-                return x.data_l;
-            else if(cmp < 0) {
-                if (x.left_child == null)
+            pos = getDataPos(x,key);
+            if(x.data.get(pos).key.toString().compareTo(key.toString()) == 0)
+                return x.data.get(pos);
+            else if(x.data.get(pos).key.toString().compareTo(key.toString()) < 0) {
+                if(x.child.get(pos) == null)
                     return null;
-                x = x.left_child;
-            }else{
-                if(x.data_m ==null)
+                x = x.child.get(pos);
+            }
+            else {
+                if(x.child.get(pos+1) == null)
                     return null;
-                cmp = key.toString().compareTo(x.data_m.key.toString());
+                x = x.child.get(pos + 1);
             }
         }
     }
+
+    private int getDataPos(Node<String,Integer> node,String key) {
+        int pos;
+        int dataSize = node.data.size();
+        for(pos =0; pos < dataSize; pos++){
+            if(node.data.get(pos).key.toString().compareTo(key.toString()) > 0)
+                return pos;
+        }
+        return pos;
+    }
+
     public int get(String key) {
     }
 
     public boolean contains(String key){
-
     }
 
     public Iterable<String> keys() {
     }
 
     public int size() {
+        return nodeSize;
     }
 
     public int depth() {
@@ -111,21 +130,12 @@ class Tree234<String, Integer> {
 }
 
 class Node<K, V> {
-    Element<K, V> data_l, data_m, data_r;
-    Node<K, V> parent, left_child, left_mid_child, right_mid_child, right_child;
+    ArrayList<Element<K,V>> data = new ArrayList<>(3);
+    Node<K, V> parent;
+    ArrayList<Node<K,V>> child = new ArrayList<>(4);
 
-    Node(K key, V value, String pos) {
-        switch (pos) {
-            case "left":
-                data_l = new Element<>(key, value);
-                break;
-            case "middle":
-                data_m = new Element<>(key, value);
-                break;
-            case "right":
-                data_r = new Element<>(key, value);
-                break;
-        }
+    Node(K key, V value) {
+        data.add(new Element<>(key,value));
     }
 
 }
