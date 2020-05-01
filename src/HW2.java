@@ -1,11 +1,11 @@
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Random;
-import java.util.Scanner;
+        import java.io.FileNotFoundException;
+        import java.util.ArrayList;
+        import java.util.Random;
+        import java.util.Scanner;
 
 public class HW2 {
+
     public static void main(String[] args) {
         Tree234<String, Integer> st = new Tree234<>();
         Scanner sc = new Scanner(System.in);
@@ -20,13 +20,12 @@ public class HW2 {
             long start = System.currentTimeMillis();
             while (sc.hasNext()) {
                 String word = sc.next();
-                if (!st.contains(word)) {
+                if (!st.contains(word))
                     st.put(word, 1);
-                } else st.put(word, st.get(word) + 1);
+                else st.put(word, st.get(word) + 1);
             }
             long end = System.currentTimeMillis();
             System.out.println("입력 완료: 소요 시간 = " + (end - start) + "ms");
-
             System.out.println("### 생성 시점의 트리 정보");
             print_tree(st);
 
@@ -35,11 +34,11 @@ public class HW2 {
             for (int i = 0; i < loopCount; i++) {
                 int deletedIndex = rand.nextInt(keyList.size());
                 String key = keyList.get(deletedIndex);
-                //st.delete(key);
+                //  st.delete(key);									// 주석 처리 가능
                 keyList.remove(deletedIndex);
             }
-            //System.out.println("\n### 키 삭제 후 트리 정보");
-            // print_tree(st);
+            //System.out.println("\n### 키 삭제 후 트리 정보");			// 주석 처리 가능
+            //print_tree(st);										// 주석 처리 가능
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -50,7 +49,6 @@ public class HW2 {
     private static void print_tree(Tree234<String, Integer> st) {
         System.out.println("등록된 단어 수 = " + st.size());
         System.out.println("트리의 깊이 = " + st.depth());
-
         String maxKey = "";
         int maxValue = 0;
         for (String word : st.keys())
@@ -62,70 +60,26 @@ public class HW2 {
     }
 }
 
-class Tree234<String, Integer> {
-    private Node<String, Integer> root;
-    private int nodeSize = 0;
+class Tree234<K, V> {
 
-    public void put(String key, Integer value) {
+    Node<K, V> root;
+    int size = 0;
 
-        Node<String, Integer> x = root;
-
-        if (x == null) {
-            root = new Node<>(key, value);
-            nodeSize++;
-            return;
-        }
-        Element<String, Integer> searchData = dataSearch(key);
-        if (searchData != null)
-            searchData.value = value;
-        else {
-            nodeSize++;
-            Node<String, Integer> searchNode = nodeSearch(key);
-            insert(searchNode, key, value);
-        }
+    public boolean contains(K key) {
+        return get(key) != null;
     }
 
-    private void insert(Node<String, Integer> node, String key, Integer value) {
-        node.data.add(new Element<>(key, value));
-        node.data.sort((o1, o2) -> o1.compareTo(o2.key));
-        if (node.data.size() == 4) {
-            if (node.parent == null) {
-                node.parent = new Node<>(node.data.get(2).key, node.data.remove(2).value);
-                node.parent.child.add(node);
-                node.parent.child.add(new Node<>(node.data.get(2).key, node.data.remove(2).value));
-                node.parent.child.get(1).parent = node.parent;
-                root = node.parent;
-            } else {
-                insert(node.parent, node.data.get(2).key, node.data.remove(2).value);
-                node.parent.child.add(new Node<>(node.data.get(2).key, node.data.remove(2).value));
-                node.parent.child.get(node.parent.child.size() - 1).parent = node.parent;
-                node.parent.child.sort(new Comparator<Node<String, Integer>>() {
-                    @Override
-                    public int compare(Node<String, Integer> o1, Node<String, Integer> o2) {
-                        return o1.data.get(0).compareTo(o2.data.get(0).key);
-                    }
-                });
-                if (node.parent.child.size() == 5) {
-                    int pos = 0;
-                    for (int i = 0; i < node.parent.parent.child.size(); i++) {
-                        if (node.parent.parent.child.get(i).equals(node.parent))
-                            pos = i;
-                    }
-                    node.parent.parent.child.get(pos).child.add(node.parent.child.remove(3));
-                    node.parent.parent.child.get(pos).child.add(node.parent.child.remove(3));
-                    node.parent = node.parent.parent.child.get(pos);
-                    node.parent.child.get(1).parent = node.parent;
-                }
-
-            }
-        }
-    }
-
-
-    private Element<String, Integer> dataSearch(String key) {
-        Node<String, Integer> x = root;
+    public V get(K key) {
         if (root == null)
             return null;
+        Node<K, V> x = nodeSearch(key);    //TODO 만약 get뿐만 아니라 다른 메소드에서도 찾는다면 root가 null일때도 추가해줘야함 datasearch도
+        Node<K, V>.Element searchData = dataSearch(x, key);
+        if (searchData != null)
+            return searchData.value;
+        return null;
+    }
+
+    private Node<K, V>.Element dataSearch(Node<K, V> x, K key) {
         int pos;
         while (true) {
             pos = getDataPos(x, key);
@@ -139,18 +93,19 @@ class Tree234<String, Integer> {
                 if (x.child.size() == 0)
                     return null;
                 x = x.child.get(pos + 1);
+
             }
         }
     }
 
-    private Node<String, Integer> nodeSearch(String key) {
-        Node<String, Integer> x = root;
+    private Node<K, V> nodeSearch(K key) {
+        Node<K, V> x = root;
         int pos;
         while (true) {
             pos = getDataPos(x, key);
-            if (x.data.get(pos).compareTo(key) == 0)
+            if (x.data.get(pos).compareTo(key) == 0) {
                 return x;
-            else if (x.data.get(pos).compareTo(key) > 0) {
+            } else if (x.data.get(pos).compareTo(key) > 0) {
                 if (x.child.size() == 0)
                     return x;
                 x = x.child.get(pos);
@@ -162,38 +117,73 @@ class Tree234<String, Integer> {
         }
     }
 
-    private int getDataPos(Node<String, Integer> node, String key) {
-        int pos;
-        int dataSize = node.data.size();
-        for (pos = 0; pos < dataSize; pos++) {
-            if (node.data.get(pos).compareTo(key) >= 0)
-                return pos;
+    private int getDataPos(Node<K, V> x, K key) {
+        int dataSize = x.data.size();
+        for (int i = 0; i < dataSize; i++) {
+            if (x.data.get(i).compareTo(key) >= 0)
+                return i;
         }
-        return pos -1;
+        return dataSize - 1;
     }
 
-    public Integer get(String key) {
-        Element<String, Integer> searchData = dataSearch(key);
-        if (searchData == null)
-            return null;
+    public void put(K key, V value) {
+        Node<K, V> x = root;
+
+        if (x == null) {
+            root = new Node<>(key, value);
+            size++;
+            return;
+        }
+        Node<K, V> searchNode = nodeSearch(key);
+        Node<K, V>.Element searchData = dataSearch(x, key);
+        if (searchData != null)
+            searchData.value = value;
+            //TODO 혹시모르니까 안되면 고치기
         else {
-            if (searchData.key.equals(key))
-                return searchData.value;
+            size++;
+            insert(searchNode, key, value);
         }
-        return null;
+
     }
 
-    public boolean contains(String key) {
-        return dataSearch(key) != null;
+    private void insert(Node<K, V> node, K key, V value) {
+        node.dataInsert(key, value);
+        node.data.sort((o1, o2) -> o1.compareTo(o2.key));
+        if (node.data.size() == 4) {
+            if (node.parent == null) { //TODO 리펙토링하기
+                node.parent = new Node<>(node.data.get(2).key, node.data.remove(2).value);
+                node.parent.child.add(node);
+                node.parent.child.add(new Node<>(node.data.get(2).key, node.data.remove(2).value));
+                node.parent.child.get(1).parent = node.parent;
+                root = node.parent;
+                if (node.child.size() != 0) {
+                    node.parent.child.get(1).child.add(node.child.get(3));
+                    node.parent.child.get(1).child.add(node.child.get(4));
+                    node.child.remove(3).parent = node.parent.child.get(1);
+                    node.child.remove(3).parent = node.parent.child.get(1);
+                }
+            } else {
+                int insertIndex = node.parent.child.indexOf(node) + 1;
+                node.parent.child.add(insertIndex, new Node<>(node.data.get(3).key, node.data.remove(3).value));
+                node.parent.child.get(insertIndex).parent = node.parent;
+                if (node.child.size() != 0) {
+                    node.parent.child.get(insertIndex).child.add(node.child.get(3));
+                    node.parent.child.get(insertIndex).child.add(node.child.get(4));
+                    node.child.remove(3).parent = node.parent.child.get(insertIndex);
+                    node.child.remove(3).parent = node.parent.child.get(insertIndex);
+                }
+                insert(node.parent, node.data.get(2).key, node.data.remove(2).value);
+            }
+        }
     }
 
-    public Iterable<String> keys() {
-        ArrayList<String> keyList = new ArrayList<String>(size());
+    public Iterable<K> keys() {
+        ArrayList<K> keyList = new ArrayList<>(size());
         inorder(root, keyList);
         return keyList;
     }
 
-    private void inorder(Node<String, Integer> x, ArrayList<String> keyList) {
+    private void inorder(Node<K, V> x, ArrayList<K> keyList) {
         int dataSize = x.data.size();
         if (x.child.size() == 0) {
             for (int i = 0; i < dataSize; i++)
@@ -208,12 +198,12 @@ class Tree234<String, Integer> {
     }
 
     public int size() {
-        return nodeSize;
+        return size;
     }
 
     public int depth() {
         int depth = 0;
-        Node<String, Integer> x = root;
+        Node<K, V> x = root;
         while (true) {
             depth++;
             if (x.child.size() == 0)
@@ -222,35 +212,37 @@ class Tree234<String, Integer> {
                 x = x.child.get(0);
         }
     }
-
-//    public void delete(String key) {
-//    }
-
-
 }
 
 class Node<K, V> {
-    ArrayList<Element<K, V>> data = new ArrayList<>(4);
+    ArrayList<Element> data = new ArrayList<>(4);
     Node<K, V> parent;
     ArrayList<Node<K, V>> child = new ArrayList<>(5);
 
-    Node(K key, V value) {
-        data.add(new Element<>(key, value));
-        parent = null;
-    }
-}
-
-class Element<K, V> implements Comparable<K> {
-    K key;
-    V value;
-
-    public Element(K key, V value) {
-        this.key = key;
-        this.value = value;
+    public Node(K key, V value) {
+        dataInsert(key, value);
     }
 
-    @Override
-    public int compareTo(K key) {
-        return this.key.toString().compareTo(key.toString());
+    public void dataInsert(K key, V value) {
+        data.add(new Element(key, value));
+    }
+
+    public void dataInsert(int index, K key, V value) {
+        data.add(new Element(key, value));
+    }
+
+    public class Element implements Comparable<K> {
+        K key;
+        V value;
+
+        public Element(K key, V value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        @Override
+        public int compareTo(K key) {
+            return this.key.toString().compareTo(key.toString());
+        }
     }
 }
