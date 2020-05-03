@@ -1,8 +1,8 @@
 import java.io.File;
-        import java.io.FileNotFoundException;
-        import java.util.ArrayList;
-        import java.util.Random;
-        import java.util.Scanner;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.Scanner;
 
 public class HW2 {
 
@@ -29,16 +29,18 @@ public class HW2 {
             System.out.println("### 생성 시점의 트리 정보");
             print_tree(st);
 
-            ArrayList<String> keyList = (ArrayList<String>) st.keys();
+            /*ArrayList<String> keyList = (ArrayList<String>) st.keys();
             int loopCount = (int) (keyList.size() * 0.95);
             for (int i = 0; i < loopCount; i++) {
                 int deletedIndex = rand.nextInt(keyList.size());
                 String key = keyList.get(deletedIndex);
-                //  st.delete(key);									// 주석 처리 가능
+                st.delete(key);
                 keyList.remove(deletedIndex);
-            }
-            //System.out.println("\n### 키 삭제 후 트리 정보");			// 주석 처리 가능
-            //print_tree(st);										// 주석 처리 가능
+            }*/
+            st.delete("a0");
+            st.delete("a1");
+            System.out.println("\n### 키 삭제 후 트리 정보");
+            print_tree(st);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -57,6 +59,7 @@ public class HW2 {
                 maxKey = word;
             }
         System.out.println("가장 빈번히 나타난 단어와 빈도수: " + maxKey + " " + maxValue);
+        st.show();
     }
 }
 
@@ -212,6 +215,136 @@ class Tree234<K, V> {
                 x = x.child.get(0);
         }
     }
+
+    public void delete(K key) {
+        size--;
+        Node<K, V> searchNode = nodeSearch(key);
+        int deletePos = getDataPos(searchNode , key);
+
+        if(searchNode.child.size() != 0) // leaf node 가 아니라면 바꿔서 leaf node로 만들기
+            searchNode = changeInorderSuccessor(searchNode,deletePos);
+
+        remove(searchNode,key,deletePos); // 지우기
+
+    }
+
+    private void remove(Node<K, V> node, K key,int pos) {
+        if(node.data.size() > 1)
+            node.data.remove(pos);
+        else{
+            // case 1 : if(sibling size > 1)  : rotate
+            // case 2 : if(sibling size == 1) : combine
+            // case 2.1 : if ( parent data size = 1)
+            // case 2.1.1 : parent.sibling size > 1 : node.parent == node.p.p.c
+            int nodePos = node.parent.child.indexOf(node);
+            int childSize = node.parent.child.size();
+            int siblingPos = -1;
+            Node<K,V> sibling = null;
+
+            if (nodePos != 0 && nodePos + 1 < childSize) {
+                if (node.parent.child.get(nodePos + 1).data.size() == 1) {
+                    sibling = node.parent.child.get(nodePos - 1);
+                    siblingPos = nodePos -1;
+                }
+                else {
+                    sibling = node.parent.child.get(nodePos + 1);
+                    siblingPos = nodePos +1;
+                }
+            } else {
+                if (nodePos == 0) {
+                    sibling = node.parent.child.get(1);
+                    siblingPos = 1;
+                }
+                else if (nodePos + 1 == childSize) {
+                    sibling = node.parent.child.get(nodePos - 1);
+                    siblingPos = nodePos -1;
+                }
+            }
+
+            if (sibling.data.size() > 1)
+                rotate(node,sibling,siblingPos);
+            else
+                combine(node,sibling,siblingPos);
+        }
+    }
+
+    private void combine(Node<K, V> node, Node<K, V> sibling, int siblingPos) {
+
+        if(siblingPos < node.parent.child.indexOf(node)) {
+            node.parent.child.remove(siblingPos + 1);
+            sibling.data.add(sibling.parent.data.get(siblingPos));
+            if(node.child.size() != 0) {
+                node.child.get(0).parent =sibling;
+                sibling.child.add(node.child.get(0));
+            }
+        }else{
+            /*System.out.println("-------------------------");
+            System.out.println(node.parent.child.size());
+            System.out.println(node.parent.child.indexOf(node));
+            System.out.println(siblingPos);
+            System.out.println("-------------------------");*/
+            node.parent.child.remove(siblingPos -1);
+            sibling.data.add(0,sibling.parent.data.get(siblingPos -1));
+            siblingPos -= 1;
+            if(node.child.size() != 0) {
+                node.child.get(0).parent =sibling;
+                sibling.child.add(0,node.child.get(0));
+            }
+        }
+
+        if (sibling.parent.data.size() == 1) {
+            if (sibling.parent == root) {
+                root = sibling;
+                sibling.parent = null;
+                if(node.child.size() != 0) {
+                    node.child.get(0).parent =sibling;
+                    if(node.data.get(0).compareTo(sibling.data.get(0).key) < 0)
+                        sibling.child.add(0,node.child.get(0));
+                    else
+                        sibling.child.add(node.child.get(0));
+                }
+            }else
+                remove(sibling.parent, sibling.parent.data.get(siblingPos).key, siblingPos);
+        }
+    }
+
+
+    private void rotate(Node<K, V> node, Node<K, V> sibling ,int siblingPos) {
+        if(siblingPos > node.parent.child.indexOf(node)) {
+            node.data.set(0, node.parent.data.get(siblingPos - 1));
+            node.parent.data.set(siblingPos - 1, sibling.data.remove(0));
+            if(node.child.size() != 0){
+                node.parent.child.get(siblingPos).child.get(0).parent = node;
+                node.child.add(node.parent.child.get(siblingPos).child.remove(0));
+            }
+        }else{
+            node.data.set(0, node.parent.data.get(siblingPos));
+            node.parent.data.set(siblingPos, sibling.data.remove(sibling.data.size() -1));
+            if(node.child.size() != 0){
+                node.parent.child.get(siblingPos).child.get(sibling.child.size() -1).parent = node;
+                node.child.add(node.parent.child.get(siblingPos).child.remove(sibling.child.size() -1));
+            }
+        }
+    }
+
+
+    private Node<K,V> changeInorderSuccessor(Node<K, V> node, int pos) {
+        Node<K,V> inorderSuccessor = node.child.get(pos+1);
+        while(true){
+            if(inorderSuccessor.child.size() == 0) {
+                node.swap(pos, inorderSuccessor.data);
+                return inorderSuccessor;
+            }
+            else
+                inorderSuccessor = inorderSuccessor.child.get(0);
+        }
+    }
+
+    public void show() {
+        for(K word : keys())
+            System.out.print(word + " -");
+        System.out.println("--- " +root.data.get(0).key + "  " + root.data.size() + "   " + root.child.size());
+    }
 }
 
 class Node<K, V> {
@@ -227,9 +360,13 @@ class Node<K, V> {
         data.add(new Element(key, value));
     }
 
-    public void dataInsert(int index, K key, V value) {
-        data.add(new Element(key, value));
+    public void swap(int pos, ArrayList<Element> inorderSuccessor) {
+        Element tmp;
+        tmp = inorderSuccessor.get(0);
+        inorderSuccessor.set(0,data.get(pos));
+        data.set(pos,tmp);
     }
+
 
     public class Element implements Comparable<K> {
         K key;
