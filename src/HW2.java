@@ -29,16 +29,35 @@ public class HW2 {
             System.out.println("### 생성 시점의 트리 정보");
             print_tree(st);
 
-            /*ArrayList<String> keyList = (ArrayList<String>) st.keys();
+            ArrayList<String> keyList = (ArrayList<String>) st.keys();
             int loopCount = (int) (keyList.size() * 0.95);
             for (int i = 0; i < loopCount; i++) {
                 int deletedIndex = rand.nextInt(keyList.size());
+                System.out.println("index : " + deletedIndex);
                 String key = keyList.get(deletedIndex);
                 st.delete(key);
                 keyList.remove(deletedIndex);
-            }*/
-            st.delete("a0");
+            }
+            /*System.out.println();
+            String key = keyList.get(2289);
+            st.getto(key);
+            System.out.println(key);*/
+            /*st.delete("a0");
             st.delete("a1");
+            st.delete("a2");
+            st.delete("a3");
+            st.delete("a4");
+            st.delete("a5");
+            st.delete("a6");
+            st.delete("a7");
+            st.delete("a8");
+            st.delete("a9");
+            st.delete("b1");
+            st.delete("b2");
+            st.delete("b3");
+            st.delete("b4");
+            st.delete("b5");*/
+
             System.out.println("\n### 키 삭제 후 트리 정보");
             print_tree(st);
         } catch (FileNotFoundException e) {
@@ -188,6 +207,7 @@ class Tree234<K, V> {
 
     private void inorder(Node<K, V> x, ArrayList<K> keyList) {
         int dataSize = x.data.size();
+
         if (x.child.size() == 0) {
             for (int i = 0; i < dataSize; i++)
                 keyList.add(x.data.get(i).key);
@@ -220,9 +240,17 @@ class Tree234<K, V> {
         size--;
         Node<K, V> searchNode = nodeSearch(key);
         int deletePos = getDataPos(searchNode , key);
+       /* System.out.println("key = " + key );
+        for(int i = 0; i < searchNode.data.size(); i++)
+            System.out.print(searchNode.data.get(i).key +" ");
+        System.out.println();
+        for(int i =0;i<searchNode.child.size();i++)
+            System.out.print(searchNode.child.get(i).data.get(0).key +" ");*/
 
-        if(searchNode.child.size() != 0) // leaf node 가 아니라면 바꿔서 leaf node로 만들기
-            searchNode = changeInorderSuccessor(searchNode,deletePos);
+        if(searchNode.child.size() != 0) { // leaf node 가 아니라면 바꿔서 leaf node로 만들기
+            searchNode = changeInorderSuccessor(searchNode, deletePos);
+            deletePos = getDataPos(searchNode,key);
+        }
 
         remove(searchNode,key,deletePos); // 지우기
 
@@ -261,6 +289,7 @@ class Tree234<K, V> {
                 }
             }
 
+            assert sibling != null;
             if (sibling.data.size() > 1)
                 rotate(node,sibling,siblingPos);
             else
@@ -278,11 +307,6 @@ class Tree234<K, V> {
                 sibling.child.add(node.child.get(0));
             }
         }else{
-            /*System.out.println("-------------------------");
-            System.out.println(node.parent.child.size());
-            System.out.println(node.parent.child.indexOf(node));
-            System.out.println(siblingPos);
-            System.out.println("-------------------------");*/
             node.parent.child.remove(siblingPos -1);
             sibling.data.add(0,sibling.parent.data.get(siblingPos -1));
             siblingPos -= 1;
@@ -296,15 +320,20 @@ class Tree234<K, V> {
             if (sibling.parent == root) {
                 root = sibling;
                 sibling.parent = null;
-                if(node.child.size() != 0) {
+                /*if(node.child.size() != 0) {
                     node.child.get(0).parent =sibling;
                     if(node.data.get(0).compareTo(sibling.data.get(0).key) < 0)
                         sibling.child.add(0,node.child.get(0));
                     else
                         sibling.child.add(node.child.get(0));
-                }
-            }else
+                }*/
+            }else {
                 remove(sibling.parent, sibling.parent.data.get(siblingPos).key, siblingPos);
+                System.out.println("22222222222");
+            }
+        }else {
+            remove(sibling.parent, sibling.parent.data.get(siblingPos).key, siblingPos);
+            System.out.println("3333333333333");
         }
     }
 
@@ -322,7 +351,7 @@ class Tree234<K, V> {
             node.parent.data.set(siblingPos, sibling.data.remove(sibling.data.size() -1));
             if(node.child.size() != 0){
                 node.parent.child.get(siblingPos).child.get(sibling.child.size() -1).parent = node;
-                node.child.add(node.parent.child.get(siblingPos).child.remove(sibling.child.size() -1));
+                node.child.add(0,node.parent.child.get(siblingPos).child.remove(sibling.child.size() -1));
             }
         }
     }
@@ -343,7 +372,12 @@ class Tree234<K, V> {
     public void show() {
         for(K word : keys())
             System.out.print(word + " -");
-        System.out.println("--- " +root.data.get(0).key + "  " + root.data.size() + "   " + root.child.size());
+        System.out.println();
+    }
+
+    public void getto(K key) {
+        Node<K,V> x = nodeSearch(key);
+        System.out.println(x.data.size() + " " + x.child.size() + " " + x.data.get(0).key);
     }
 }
 
